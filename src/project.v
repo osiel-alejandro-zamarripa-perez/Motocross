@@ -1,92 +1,42 @@
-/*
-
- * Copyright (c) 2024 Uri Shaked
-
- * SPDX-License-Identifier: Apache-2.0
-
- */
-
-
-
-`default_nettype none
-
-
-
 module tt_um_KK_VGA01(
-
   input  wire [7:0] ui_in,    // Dedicated inputs
-
   output wire [7:0] uo_out,   // Dedicated outputs
-
   input  wire [7:0] uio_in,   // IOs: Input path
-
-  input  wire [7:0] dir_in,   // Direccion por jugador: {P4,P3,P2,P1}, cada uno {sentido,eje}
-
   output wire [7:0] uio_out,  // IOs: Output path
-
   output wire [7:0] uio_oe,   // IOs: Enable path (active high: 0=input, 1=output)
-
   input  wire       ena,      // always 1 when the design is powered, so you can ignore it
-
   input  wire       clk,      // clock
-
   input  wire       rst_n     // reset_n - low to reset
-
 );
 
-
-
   // VGA signals
-
   wire hsync;
-
   wire vsync;
-
   wire [1:0] R;
-
   wire [1:0] G;
-
   wire [1:0] B;
-
   wire video_active;
-
   wire [9:0] pix_x;
-
   wire [9:0] pix_y;
 
-
-
   // TinyVGA PMOD
-
   assign uo_out = {hsync, B[0], G[0], R[0], vsync, B[1], G[1], R[1]};
 
-
-
   // Unused outputs assigned to 0.
-
   assign uio_out = 8'b00000000;
-
   assign uio_oe  = 8'b00000000;
 
-
-
+  // Mapeo de entradas para Tiny Tapeout
+  wire [7:0] dir_in     = ui_in;
   wire [1:0] game_track = uio_in[1:0];
-
   wire [1:0] game_speed = uio_in[3:2];
 
-
-
-  wire hard_reset = ~rst_n;
-
-  wire user_reset = ui_in[4];
-
+  wire hard_reset     = ~rst_n;
+  wire user_reset     = uio_in[4];
   wire gameplay_reset = hard_reset | user_reset;
 
-
-
-  // Suppress unused signals warning
-
-  wire _unused_ok = &{ena, ui_in[7:5], ui_in[3:0], uio_in[7:4]};
+  // Suppress unused signals warning (necesario para RUN_LINTER)
+  wire _unused_ok = &{ena, uio_in[7:5]};
 
 
 
