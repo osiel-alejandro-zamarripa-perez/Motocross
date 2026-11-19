@@ -1,8 +1,8 @@
 # Tiny Tapeout project information
 project:
   title:        "VGA Motorcycle Racing Game"
-  author:       "Osiel Alejandro Zamarripa Pérez"
-  discord:      ""
+  author:       "Osiel  Zamarripa and Rodrigo ibarra"
+  discord:      "Superez34"
   description:  "4-player VGA motorcycle racing game with sub-pixel physics and selectable tracks"
   language:     "Verilog"
   clock_hz:     25175000
