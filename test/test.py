@@ -8,13 +8,13 @@ from cocotb.triggers import ClockCycles
 
 @cocotb.test()
 async def test_project(dut):
-    dut._log.info("Start")
+    dut._log.info("Start VGA Motorcycle Racing Game test")
 
-    # Set the clock period to 10 us (100 KHz)
-    clock = Clock(dut.clk, 10, unit="us")
+    # Reloj VGA (~25 MHz -> periodo de 40 ns)
+    clock = Clock(dut.clk, 40, unit="ns")
     cocotb.start_soon(clock.start())
 
-    # Reset
+    # Reset inicial
     dut._log.info("Reset")
     dut.ena.value = 1
     dut.ui_in.value = 0
@@ -23,18 +23,20 @@ async def test_project(dut):
     await ClockCycles(dut.clk, 10)
     dut.rst_n.value = 1
 
-    dut._log.info("Test project behavior")
+    # Verificar que los pines bidireccionales queden configurados como entradas
+    assert int(dut.uio_oe.value) == 0
+    assert int(dut.uio_out.value) == 0
 
-    # Set the input values you want to test
-    dut.ui_in.value = 20
-    dut.uio_in.value = 30
+    # Configurar pista 1, velocidad 1 y direccion del jugador 1
+    dut.uio_in.value = 0b00000101
+    dut.ui_in.value = 0b00000001
 
-    # Wait for one clock cycle to see the output values
-    await ClockCycles(dut.clk, 1)
+    # Avanzar al pulso activo de HSYNC en la primera linea (pix_x ~ 660, blanking activo)
+    # uo_out = {hsync, B0, G0, R0, vsync, B1, G1, R1} -> hsync=0, vsync=1, RGB=0 -> 0x08
+    await ClockCycles(dut.clk, 660)
+    assert int(dut.uo_out.value) == 0x08, f"Se esperaba uo_out=0x08 durante HSYNC activo, se obtuvo {dut.uo_out.value}"
 
-    # The following assersion is just an example of how to check the output values.
-    # Change it to match the actual expected output of your module:
-    assert dut.uo_out.value == 50
-
-    # Keep testing the module by changing the input values, waiting for
-    # one or more clock cycles, and asserting the expected output values.
+    # Avanzar fuera del pulso HSYNC (pix_x ~ 760, sigue en blanking)
+    # hsync=1, vsync=1, RGB=0 -> 0x88
+    await ClockCycles(dut.clk, 100)
+    assert int(dut.uo_out.value) == 0x88, f"Se esperaba uo_out=0x88 tras finalizar HSYNC, se obtuvo {dut.uo_out.value}"
